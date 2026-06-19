@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Manage Listings | TNLandBazaar</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23b08d57'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-weight='900' font-size='18' fill='%23fff'%3ETN%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <!-- LOGIN GATE -->
+  <div id="login-gate">
+    <div class="login-card">
+      <div class="login-icon">TN</div>
+      <h1 class="login-title">Admin Panel</h1>
+      <p class="login-sub">Enter password to manage listings</p>
+      <form id="login-form">
+        <input type="password" class="login-input" id="login-pwd" placeholder="••••••••" autocomplete="off" autofocus />
+        <button type="submit" class="login-btn">Unlock Dashboard</button>
+      </form>
+      <div class="login-error" id="login-error">⛔ Access Denied — incorrect password.</div>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin-panel" style="display:none;">
+    <nav class="admin-nav">
+      <div class="admin-brand"><div class="admin-brand-icon">TN</div><span>Listings Manager</span></div>
+      <div class="admin-nav-right">
+        <a href="index.html" class="admin-back" id="view-site-link">← View Site</a>
+        <button class="admin-logout" id="logout-btn">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-icon stat-icon--total">📊</div><div><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Total Listings</div></div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--active">✅</div><div><div class="stat-val" id="s-active">0</div><div class="stat-lbl">Active Listings</div></div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--sold">🔴</div><div><div class="stat-val" id="s-sold">0</div><div class="stat-lbl">Sold Listings</div></div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--clicks">💰</div><div><div class="stat-val" id="s-active-value">₹0</div><div class="stat-lbl">Active Value</div></div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--clicks">💰</div><div><div class="stat-val" id="s-sold-value">₹0</div><div class="stat-lbl">Sold Value</div></div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--clicks">📈</div><div><div class="stat-val" id="s-avg-price">₹0</div><div class="stat-lbl">Average Price</div></div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="listings-tab" id="tab-listings">📋 Listings</button>
+      <button class="admin-tab" data-tab="leads-tab" id="tab-leads">📩 Leads <span class="tab-count" id="leads-count">0</span></button>
+    </div>
+
+    <!-- LISTINGS TAB -->
+    <div class="admin-tab-panel active" id="listings-tab">
+    <div class="location-filter-panel">
+      <div class="location-filter-row">
+        <div class="location-filter-group">
+          <label class="location-filter-label" for="filter-district">District</label>
+          <select class="form-input location-filter-select" id="filter-district"></select>
+        </div>
+        <div class="location-filter-group">
+          <label class="location-filter-label" for="filter-taluk">Taluk</label>
+          <select class="form-input location-filter-select" id="filter-taluk"></select>
+        </div>
+        <div class="location-filter-group">
+          <label class="location-filter-label" for="filter-village">Village</label>
+          <select class="form-input location-filter-select" id="filter-village"></select>
+        </div>
+        <div class="location-filter-actions">
+          <button type="button" class="tbtn tbtn--seed location-filter-reset" id="reset-location-filters">Reset filters</button>
+        </div>
+      </div>
+    </div>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input type="text" class="toolbar-search" id="search-input" placeholder="🔍  Search listings..." />
+      <div class="toolbar-btns">
+        <button class="tbtn tbtn--add" id="add-btn">＋ Add Listing</button>
+        <button class="tbtn tbtn--seed" id="seed-btn">📥 Import Demo</button>
+      </div>
+    </div>
+
+    <!-- Listings -->
+    <div class="table-container" id="listings-container"></div>
+
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <div class="empty-icon">📭</div>
+      <div class="empty-text">No listings yet</div>
+      <div class="empty-sub">Click <strong>"＋ Add Listing"</strong> or <strong>"📥 Import Demo"</strong> to get started.</div>
+    </div>
+    </div>
+
+    <!-- LEADS TAB -->
+    <div class="admin-tab-panel" id="leads-tab">
+    <div class="leads-subtabs">
+      <button class="leads-subtab active" data-cat="selling" id="subtab-selling">
+        <span class="leads-subtab-icon leads-subtab-icon--sell">🏷️</span>
+        <span class="leads-subtab-label">Selling Leads</span>
+        <span class="leads-subtab-count" id="selling-count">0</span>
+      </button>
+      <button class="leads-subtab" data-cat="buying" id="subtab-buying">
+        <span class="leads-subtab-icon leads-subtab-icon--buy">🛒</span>
+        <span class="leads-subtab-label">Buying Leads</span>
+        <span class="leads-subtab-count" id="buying-count">0</span>
+      </button>
+    </div>
+    <div class="toolbar">
+      <input type="text" class="toolbar-search" id="leads-search" placeholder="🔍  Search leads..." />
+      <div class="toolbar-btns">
+        <button class="tbtn tbtn--seed" id="export-leads-btn">📤 Export CSV</button>
+        <button class="tbtn tbtn--seed" id="clear-leads-btn" style="border-color:#e74c3c;color:#e74c3c;">🗑️ Clear All</button>
+      </div>
+    </div>
+    <div class="table-container" id="leads-container"></div>
+    <div class="empty-state" id="leads-empty" style="display:none;">
+      <div class="empty-icon">📭</div>
+      <div class="empty-text">No leads yet</div>
+      <div class="empty-sub">Leads from the Sell form and Contact form will appear here.</div>
+    </div>
+    </div>
+
+  </div>
+
+  <!-- ADD/EDIT MODAL -->
+  <div class="modal-overlay" id="form-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Add New Listing</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <form id="listing-form" class="listing-form">
+        <input type="hidden" id="f-id" />
+        <div class="form-group" style="margin-bottom:14px;"><label class="form-label">Price (₹)</label><input type="text" class="form-input" id="f-price" placeholder="e.g. ₹45,00,000" required /></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">District</label><input type="text" class="form-input" id="f-district" placeholder="e.g. Dindigul" /></div>
+          <div class="form-group"><label class="form-label">Taluk</label><input type="text" class="form-input" id="f-taluk" placeholder="e.g. Vedasandur" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Village</label><input type="text" class="form-input" id="f-village" placeholder="e.g. V. Kothapulli" /></div>
+          <div class="form-group"><label class="form-label">SF Number</label><input type="text" class="form-input" id="f-sf-number" placeholder="e.g. 123/4A" /><div class="form-hint" title="Internal use only — not shown publicly">Internal use only — not shown publicly</div></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Land Type(s)</label>
+            <div class="tag-input" id="ti-landtype" data-presets="Agriculture,Dry Land,Paddy Land,Coconut Farm,Mango Orchard,Vacant Plot,Mixed Crop,Banana Farm,Sugarcane Farm,Teak Plantation,Vacant Land,Industrial Land,Commercial Land,Vaccant Land,Commecial Land"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Area</label><input type="text" class="form-input" id="f-area" placeholder="e.g. 5 Acres" required /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Key Feature(s)</label>
+            <div class="tag-input" id="ti-feature" data-presets="Well Water,Bore Well,Canal Water,Road Access,NH Access,Electricity,Fenced,Compound Wall,River Nearby,Lake Nearby"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Status</label>
+            <select class="form-input" id="f-badge">
+              <option value="active">✅ Active</option>
+              <option value="sold">🔴 Sold</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px;"><label class="form-label">Image URL / Path</label><input type="text" class="form-input" id="f-image" placeholder="e.g. assets/listing-1.png" /></div>
+        <div class="form-actions">
+          <button type="button" class="fbtn fbtn--cancel" id="form-cancel">Cancel</button>
+          <button type="submit" class="fbtn fbtn--save" id="form-save">Save Listing</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONFIRM DIALOG -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="confirm-box">
+      <div class="confirm-title" id="confirm-title">Delete Listing?</div>
+      <div class="confirm-text" id="confirm-text">This cannot be undone.</div>
+      <div class="confirm-btns">
+        <button class="fbtn fbtn--cancel" id="confirm-no">Cancel</button>
+        <button class="fbtn fbtn--danger" id="confirm-yes">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    const PASSWORD = 'renga060691';
+    const LAND_ICONS = {'Agriculture':'🌾','Dry Land':'🏜️','Paddy Land':'🌾','Coconut Farm':'🌴','Mango Orchard':'🥭','Vacant Plot':'🏠','Mixed Crop':'🌿','Banana Farm':'🍌','Sugarcane Farm':'🌱','Teak Plantation':'🌳','Vacant Land':'🏜️','Vaccant Land':'🏜️','Industrial Land':'🏭','Commercial Land':'🏢','Commecial Land':'🏢'};
+    const FEAT_ICONS = {'Well Water':'💧','Bore Well':'💧','Canal Water':'💧','Road Access':'🛤️','NH Access':'🛤️','Electricity':'⚡','Fenced':'🏗️','Compound Wall':'🧱','River Nearby':'🏞️','Lake Nearby':'🏞️'};
+
+    const DEMO = [
+      {id:'d1',price:'₹45,00,000',district:'Dindigul',taluk:'Vedasandur',village:'Vedasandur',sfNumber:'12/1A',landType:['Agriculture'],area:'5 Acres',feature:['Well Water'],badge:'active',image:'assets/listing-1.png',dateAdded:'2026-05-15T10:00:00Z'},
+      {id:'d2',price:'₹18,00,000',district:'Dindigul',taluk:'Natham',village:'Natham',sfNumber:'24/3B',landType:['Dry Land','Vacant Plot'],area:'3 Acres',feature:['Road Access'],badge:'active',image:'assets/listing-2.png',dateAdded:'2026-06-01T10:00:00Z'},
+      {id:'d3',price:'₹72,00,000',district:'Dindigul',taluk:'Palani',village:'Palani',sfNumber:'88/2',landType:['Paddy Land'],area:'8 Acres',feature:['Canal Water','Electricity'],badge:'active',image:'assets/listing-3.png',dateAdded:'2026-05-20T10:00:00Z'},
+      {id:'d4',price:'₹1,20,00,000',district:'Dindigul',taluk:'Oddanchatram',village:'Oddanchatram',sfNumber:'41/7',landType:['Coconut Farm'],area:'10 Acres',feature:['Bore Well','Fenced'],badge:'active',image:'assets/listing-4.png',dateAdded:'2026-04-10T10:00:00Z'},
+      {id:'d5',price:'₹54,00,000',district:'Dindigul',taluk:'Dindigul',village:'Dindigul',sfNumber:'9/11',landType:['Mango Orchard'],area:'6 Acres',feature:['Well Water'],badge:'sold',image:'assets/listing-5.png',dateAdded:'2026-03-01T10:00:00Z'},
+      {id:'d6',price:'₹32,00,000',district:'Dindigul',taluk:'Vedasandur',village:'Kariyapatti',sfNumber:'56/4C',landType:['Vacant Plot'],area:'2 Acres',feature:['NH Access','Electricity'],badge:'active',image:'assets/listing-6.png',dateAdded:'2026-06-05T10:00:00Z'}
+    ];
+
+    const $=id=>document.getElementById(id);
+    const loginGate=$('login-gate'),panel=$('admin-panel'),loginForm=$('login-form'),loginPwd=$('login-pwd'),loginErr=$('login-error');
+    const container=$('listings-container'),emptyEl=$('empty-state');
+    const searchInput=$('search-input'),addBtn=$('add-btn'),seedBtn=$('seed-btn');
+    const formModal=$('form-modal'),confirmModal=$('confirm-modal');
+    const listingForm=$('listing-form');
+    const districtFilter=$('filter-district');
+    const talukFilter=$('filter-taluk');
+    const villageFilter=$('filter-village');
+    const resetLocationFiltersBtn=$('reset-location-filters');
+    let confirmCb=null;
+
+    // ── AUTH ──────────────────────────
+    const isAuth=()=>{try{return sessionStorage.getItem('tn_admin')==='1';}catch{return false;}};
+    const grant=()=>{try{sessionStorage.setItem('tn_admin','1');}catch(e){}loginGate.style.display='none';panel.style.display='block';render();};
+    const revoke=()=>{try{sessionStorage.removeItem('tn_admin');}catch(e){}loginGate.style.display='flex';panel.style.display='none';loginPwd.value='';loginErr.classList.remove('show');};
+    if(isAuth())grant();
+    loginForm.addEventListener('submit',e=>{e.preventDefault();if(loginPwd.value===PASSWORD){loginErr.classList.remove('show');grant();}else{loginErr.classList.add('show');loginPwd.value='';loginPwd.focus();}});
+    $('logout-btn').addEventListener('click',revoke);
+
+    // ── DATA ─────────────────────────
+    const getAll=()=>{try{const data=localStorage.getItem('listings');const parsed=data?JSON.parse(data):[];return Array.isArray(parsed)&&parsed.length?parsed:DEMO;}catch{return DEMO;}};
+    const saveAll=a=>{try{localStorage.setItem('listings',JSON.stringify(a));}catch(e){console.warn(e);}updateViewSiteLink(a);};
+
+    // ── SYNC: Update "View Site" link with encoded listings data ──
+    function updateViewSiteLink(data){
+      try{
+        const link=$('view-site-link');
+        if(!link)return;
+        const encoded=encodeURIComponent(JSON.stringify(data||getAll()));
+        link.href='index.html#listings-data='+encoded;
+      }catch(e){}
+    }
+    const getClicks=()=>{try{return JSON.parse(localStorage.getItem('listing_clicks')||'{}');}catch{return{};}};
+    const genId=()=>'l'+Date.now()+Math.random().toString(36).slice(2,6);
+    const esc=s=>{const d=document.createElement('div');d.textContent=s;return d.innerHTML;};
+    const toArr=v=>Array.isArray(v)?v:(v?[v]:[]);
+    const daysBetween=(a,b)=>Math.max(0,Math.floor((b-a)/(86400000)));
+    const parsePrice = value => {
+      const raw = String(value || '').replace(/[^0-9.]/g, '');
+      const num = Number(raw);
+      return Number.isFinite(num) ? num : NaN;
+    };
+    const formatMoney = value => Number.isFinite(value) ? `₹${Math.round(value).toLocaleString('en-IN')}` : '—';
+    const uniqueSorted = values => [...new Set(values.map(v => String(v || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const combineLocationText = listing => {
+      const parts = [listing.village, listing.taluk, listing.district].filter(Boolean);
+      return parts.length ? parts.join(', ') : '—';
+    };
+    const populateSelect = (select, values, selectedValue) => {
+      if (!select) return;
+      select.innerHTML = ['<option value="">All</option>']
+        .concat(values.map(value => `<option value="${esc(value)}">${esc(value)}</option>`))
+        .join('');
+      select.value = selectedValue && values.includes(selectedValue) ? selectedValue : '';
+    };
+    const syncLocationFilters = listings => {
+      const districtSelect = $('filter-district');
+      const talukSelect = $('filter-taluk');
+      const villageSelect = $('filter-village');
+
+      const selectedDistrict = districtSelect?.value || '';
+      const selectedTaluk = talukSelect?.value || '';
+      const selectedVillage = villageSelect?.value || '';
+
+      const districtOptions = uniqueSorted(listings.map(l => l.district));
+      populateSelect(districtSelect, districtOptions, selectedDistrict);
+
+      const resolvedDistrict = districtSelect?.value || '';
+      const talukScope = resolvedDistrict ? listings.filter(l => (l.district || '') === resolvedDistrict) : listings;
+      const talukOptions = uniqueSorted(talukScope.map(l => l.taluk));
+      populateSelect(talukSelect, talukOptions, selectedTaluk);
+
+      const resolvedTaluk = talukSelect?.value || '';
+      const villageScope = resolvedTaluk
+        ? listings.filter(l => (!resolvedDistrict || (l.district || '') === resolvedDistrict) && (l.taluk || '') === resolvedTaluk)
+        : (resolvedDistrict ? listings.filter(l => (l.district || '') === resolvedDistrict) : listings);
+      const villageOptions = uniqueSorted(villageScope.map(l => l.village));
+      populateSelect(villageSelect, villageOptions, selectedVillage);
+    };
+    const formatLocationDetail = l => {
+      const parts = [];
+      if (l.district) parts.push(`District: ${l.district}`);
+      if (l.taluk) parts.push(`Taluk: ${l.taluk}`);
+      if (l.village) parts.push(`Village: ${l.village}`);
+      return parts.length ? parts.join(' · ') : '—';
+    };
+    const formatSfNumber = l => l.sfNumber ? `SF No.: ${l.sfNumber}` : 'SF No.: —';
+
+    // ── TAG INPUT COMPONENT ──────────
+    class TagInput {
+      constructor(el) {
+        this.el = el;
+        this.id = el.id;
+        this.defaultPresets = (el.dataset.presets||'').split(',').filter(Boolean);
+        this.customKey = 'custom_presets_' + this.id;
+        this.tags = [];
+        this.build();
+      }
+
+      getCustomPresets() {
+        try { return JSON.parse(localStorage.getItem(this.customKey) || '[]'); } catch { return []; }
+      }
+
+      saveCustomPresets(arr) {
+        try { localStorage.setItem(this.customKey, JSON.stringify(arr)); } catch (e) { console.warn(e); }
+      }
+
+      getAllPresets() {
+        return [...this.defaultPresets, ...this.getCustomPresets()];
+      }
+
+      build() {
+        this.el.innerHTML = '';
+        this.tagsEl = document.createElement('div'); this.tagsEl.className='ti-tags';
+        this.inputEl = document.createElement('input'); this.inputEl.className='ti-input'; this.inputEl.type='text'; this.inputEl.placeholder='Type or pick...';
+        this.dropEl = document.createElement('div'); this.dropEl.className='ti-dropdown';
+        this.el.appendChild(this.tagsEl);
+        this.el.appendChild(this.inputEl);
+        this.el.appendChild(this.dropEl);
+
+        this.inputEl.addEventListener('focus',()=>this.showDrop());
+        this.inputEl.addEventListener('input',()=>this.showDrop());
+        this.inputEl.addEventListener('keydown',e=>{
+          if(e.key==='Enter'||e.key===','){
+            e.preventDefault();
+            const v=this.inputEl.value.trim();
+            if(v) this.addTag(v);
+            this.inputEl.value='';
+            this.showDrop();
+          }
+          if(e.key==='Backspace'&&!this.inputEl.value&&this.tags.length) this.removeTag(this.tags.length-1);
+        });
+        document.addEventListener('click',e=>{if(!this.el.contains(e.target))this.dropEl.classList.remove('show');});
+      }
+
+      showDrop() {
+        const q = this.inputEl.value.toLowerCase().trim();
+        const allPresets = this.getAllPresets();
+        const customs = this.getCustomPresets();
+        const opts = allPresets.filter(p=>!this.tags.includes(p) && p.toLowerCase().includes(q));
+        const isCustom = p => customs.includes(p);
+
+        // Check if typed value is a brand-new value (not in any preset)
+        const exactMatch = q && allPresets.some(p=>p.toLowerCase()===q);
+        const showAddBtn = q && !exactMatch && !this.tags.some(t=>t.toLowerCase()===q);
+
+        if(opts.length===0 && !showAddBtn){this.dropEl.classList.remove('show');return;}
+
+        let html = '';
+
+        // Existing preset options
+        html += opts.map(o => {
+          const custom = isCustom(o);
+          return `<div class="ti-opt" data-val="${esc(o)}">
+            <span>${esc(o)}</span>
+            ${custom ? `<button type="button" class="ti-opt-del" data-preset="${esc(o)}" title="Remove this option">×</button>` : ''}
+          </div>`;
+        }).join('');
+
+        // "Add as new option" button
+        if (showAddBtn) {
+          const capitalised = this.inputEl.value.trim();
+          html += `<div class="ti-opt ti-opt--add" data-newval="${esc(capitalised)}">＋ Add <strong>"${esc(capitalised)}"</strong> as option</div>`;
+        }
+
+        this.dropEl.innerHTML = html;
+        this.dropEl.classList.add('show');
+
+        // Wire pick
+        this.dropEl.querySelectorAll('.ti-opt[data-val]').forEach(o=>{
+          o.addEventListener('mousedown',e=>{
+            if(e.target.classList.contains('ti-opt-del')) return;
+            e.preventDefault();
+            this.addTag(o.dataset.val);
+            this.inputEl.value='';
+            this.showDrop();
+          });
+        });
+
+        // Wire "add new" button
+        this.dropEl.querySelectorAll('.ti-opt--add').forEach(o=>{
+          o.addEventListener('mousedown',e=>{
+            e.preventDefault();
+            const nv = o.dataset.newval;
+            // Save to custom presets
+            const c = this.getCustomPresets();
+            if(!c.includes(nv) && !this.defaultPresets.includes(nv)){
+              c.push(nv);
+              this.saveCustomPresets(c);
+            }
+            this.addTag(nv);
+            this.inputEl.value='';
+            this.showDrop();
+          });
+        });
+
+        // Wire delete preset buttons
+        this.dropEl.querySelectorAll('.ti-opt-del').forEach(b=>{
+          b.addEventListener('mousedown',e=>{
+            e.preventDefault();
+            e.stopPropagation();
+            const p = b.dataset.preset;
+            const c = this.getCustomPresets().filter(x=>x!==p);
+            this.saveCustomPresets(c);
+            // Also remove from tags if selected
+            this.tags = this.tags.filter(t=>t!==p);
+            this.renderTags();
+            this.showDrop();
+          });
+        });
+      }
+
+      addTag(v) { if(!this.tags.includes(v)){this.tags.push(v);this.renderTags();} }
+      removeTag(i) { this.tags.splice(i,1);this.renderTags(); }
+      renderTags() {
+        this.tagsEl.innerHTML=this.tags.map((t,i)=>`<span class="ti-tag">${esc(t)}<button type="button" class="ti-tag-x" data-i="${i}">×</button></span>`).join('');
+        this.tagsEl.querySelectorAll('.ti-tag-x').forEach(b=>b.addEventListener('click',()=>this.removeTag(parseInt(b.dataset.i))));
+      }
+      setTags(arr) { this.tags=[...arr];this.renderTags(); }
+      getTags() { return [...this.tags]; }
+    }
+
+    const tiLand = new TagInput($('ti-landtype'));
+    const tiFeat = new TagInput($('ti-feature'));
+
+    // ── RENDER ────────────────────────
+    function render(filter) {
+      const all=getAll(); const clicks=getClicks();
+      const q=(filter||'').toLowerCase().trim();
+      syncLocationFilters(all);
+
+      const districtValue = districtFilter?.value || '';
+      const talukValue = talukFilter?.value || '';
+      const villageValue = villageFilter?.value || '';
+      const scope = all.filter(l => locationMatches(l, districtValue, talukValue, villageValue));
+      const list = q ? scope.filter(l => `${l.price} ${l.district||''} ${l.taluk||''} ${l.village||''} ${l.sfNumber||''} ${toArr(l.landType).join(' ')} ${l.area} ${toArr(l.feature).join(' ')} ${l.badge}`.toLowerCase().includes(q)) : scope;
+
+      const totalCount = scope.length;
+      const activeList = scope.filter(l => l.badge === 'active');
+      const soldList = scope.filter(l => l.badge === 'sold');
+      const activeValue = activeList.reduce((sum, listing) => sum + (parsePrice(listing.price) || 0), 0);
+      const soldValue = soldList.reduce((sum, listing) => sum + (parsePrice(listing.price) || 0), 0);
+      const pricedListings = scope.map(listing => parsePrice(listing.price)).filter(Number.isFinite);
+      const averagePrice = pricedListings.length ? pricedListings.reduce((sum, value) => sum + value, 0) / pricedListings.length : NaN;
+
+      $('s-total').textContent = totalCount;
+      $('s-active').textContent = activeList.length;
+      $('s-sold').textContent = soldList.length;
+      $('s-active-value').textContent = formatMoney(activeValue);
+      $('s-sold-value').textContent = formatMoney(soldValue);
+      $('s-avg-price').textContent = formatMoney(averagePrice);
+      updateViewSiteLink(all);
+
+      emptyEl.style.display='none';
+
+      const tableRows = list.length ? list.map(l => {
+        const bc=l.badge==='sold'?'badge--sold':'badge--active';
+        const bl=l.badge==='sold'?'Sold':'Active';
+        const sfText=formatSfNumber(l);
+        return `<tr data-id="${esc(l.id)}">
+          <td><strong>${esc(l.id||'—')}</strong></td>
+          <td>${esc(l.district||'—')}</td>
+          <td>${esc(l.village||'—')}</td>
+          <td>${esc(l.price||'—')}</td>
+          <td>${esc(l.area||'—')}</td>
+          <td><span class="status-badge ${bc}">${bl}</span></td>
+          <td>${esc(sfText)}</td>
+          <td class="listing-table-actions">
+            <button class="act-btn act-btn--edit" data-action="edit" data-id="${esc(l.id)}" title="Edit">✏️</button>
+            <button class="act-btn act-btn--del" data-action="delete" data-id="${esc(l.id)}" title="Delete">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="8" class="listing-table-empty">No listings match the current filters.</td></tr>`;
+
+      container.innerHTML = `
+        <table class="listings-table">
+          <thead>
+            <tr>
+              <th>Listing ID</th>
+              <th>District</th>
+              <th>Village</th>
+              <th>Price</th>
+              <th>Area</th>
+              <th>Status</th>
+              <th>SF Number</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+        </table>`;
+
+      // Wire actions
+      container.querySelectorAll('[data-action]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const id=btn.dataset.id;
+          if(btn.dataset.action==='edit')openEdit(id);
+          else if(btn.dataset.action==='delete')showConfirm('Delete Listing?','This will permanently remove this listing.',()=>{saveAll(getAll().filter(x=>x.id!==id));render(searchInput.value);});
+        });
+      });
+    }
+
+    searchInput.addEventListener('input',()=>render(searchInput.value));
+    if (districtFilter) {
+      districtFilter.addEventListener('change', () => {
+        if (talukFilter) talukFilter.value = '';
+        if (villageFilter) villageFilter.value = '';
+        render(searchInput.value);
+      });
+    }
+    if (talukFilter) {
+      talukFilter.addEventListener('change', () => {
+        if (villageFilter) villageFilter.value = '';
+        render(searchInput.value);
+      });
+    }
+    if (villageFilter) {
+      villageFilter.addEventListener('change', () => render(searchInput.value));
+    }
+    if (resetLocationFiltersBtn) {
+      resetLocationFiltersBtn.addEventListener('click', () => {
+        if (districtFilter) districtFilter.value = '';
+        if (talukFilter) talukFilter.value = '';
+        if (villageFilter) villageFilter.value = '';
+        render(searchInput.value);
+      });
+    }
+
+    // ── ADD ───────────────────────────
+    addBtn.addEventListener('click',()=>{
+      $('modal-title').textContent='Add New Listing';
+      $('form-save').textContent='Add Listing';
+      listingForm.reset();$('f-id').value='';$('f-image').value='assets/listing-1.png';
+      $('f-district').value='';$('f-taluk').value='';$('f-village').value='';$('f-sf-number').value='';
+      tiLand.setTags([]);tiFeat.setTags([]);
+      formModal.classList.add('active');
+    });
+
+    // ── EDIT ──────────────────────────
+    function openEdit(id){
+      const item=getAll().find(l=>l.id===id);if(!item)return;
+      $('modal-title').textContent='Edit Listing';$('form-save').textContent='Save Changes';
+      $('f-id').value=item.id;$('f-price').value=item.price||'';
+      $('f-district').value=item.district||'';$('f-taluk').value=item.taluk||'';$('f-village').value=item.village||'';$('f-sf-number').value=item.sfNumber||'';
+      $('f-area').value=item.area||'';$('f-badge').value=item.badge||'active';$('f-image').value=item.image||'';
+      tiLand.setTags(toArr(item.landType));tiFeat.setTags(toArr(item.feature));
+      formModal.classList.add('active');
+    }
+
+    // ── SAVE ─────────────────────────
+    listingForm.addEventListener('submit',e=>{
+      e.preventDefault();
+      
+      // Auto-commit any typed text that hasn't been added as a tag yet
+      const pendingLand = tiLand.inputEl.value.trim();
+      if (pendingLand) {
+        tiLand.addTag(pendingLand);
+        tiLand.inputEl.value = '';
+      }
+      const pendingFeat = tiFeat.inputEl.value.trim();
+      if (pendingFeat) {
+        tiFeat.addTag(pendingFeat);
+        tiFeat.inputEl.value = '';
+      }
+
+      const id=$('f-id').value;
+      const types=tiLand.getTags();const feats=tiFeat.getTags();
+      if(types.length===0){tiLand.inputEl.focus();return;}
+
+      const entry={
+        id:id||genId(),
+        price:$('f-price').value.trim(),
+        district:$('f-district').value.trim(),
+        taluk:$('f-taluk').value.trim(),
+        village:$('f-village').value.trim(),
+        sfNumber:$('f-sf-number').value.trim(),
+        landType:types,
+        landIcon:LAND_ICONS[types[0]]||'🌾',
+        area:$('f-area').value.trim(),
+        feature:feats,
+        featureIcon:FEAT_ICONS[feats[0]]||'💧',
+        badge:$('f-badge').value,
+        image:$('f-image').value.trim()||'assets/listing-1.png',
+        dateAdded:id?(getAll().find(l=>l.id===id)||{}).dateAdded||new Date().toISOString():new Date().toISOString()
+      };
+
+      const all=getAll();
+      if(id){const idx=all.findIndex(l=>l.id===id);if(idx>=0)all[idx]=entry;}
+      else all.push(entry);
+      saveAll(all);formModal.classList.remove('active');render(searchInput.value);
+    });
+
+    // ── SEED DEMO ────────────────────
+    seedBtn.addEventListener('click',()=>{
+      showConfirm('Import Demo Listings?','This will add 6 demo listings. Existing listings will NOT be removed.',()=>{
+        const all=getAll();const ids=new Set(all.map(l=>l.id));
+        DEMO.forEach(d=>{if(!ids.has(d.id))all.push(d);});
+        saveAll(all);render(searchInput.value);
+      });
+    });
+
+    // ── MODAL HELPERS ────────────────
+    const closeForm=()=>formModal.classList.remove('active');
+    $('modal-close-btn').addEventListener('click',closeForm);
+    $('form-cancel').addEventListener('click',closeForm);
+    formModal.addEventListener('click',e=>{if(e.target===formModal)closeForm();});
+
+    function showConfirm(t,x,cb){$('confirm-title').textContent=t;$('confirm-text').textContent=x;confirmCb=cb;confirmModal.classList.add('active');}
+    const closeConfirm=()=>{confirmModal.classList.remove('active');confirmCb=null;};
+    $('confirm-no').addEventListener('click',closeConfirm);
+    confirmModal.addEventListener('click',e=>{if(e.target===confirmModal)closeConfirm();});
+    $('confirm-yes').addEventListener('click',()=>{if(confirmCb)confirmCb();closeConfirm();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForm();closeConfirm();}});
+
+    // ── TAB SWITCHING ────────────────
+    const adminTabs = document.querySelectorAll('.admin-tab');
+    const adminPanels = document.querySelectorAll('.admin-tab-panel');
+    adminTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        adminTabs.forEach(t => t.classList.remove('active'));
+        adminPanels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const panel = $(tab.dataset.tab);
+        if (panel) panel.classList.add('active');
+        if (tab.dataset.tab === 'leads-tab') renderLeads();
+      });
+    });
+
+    // ── LEADS ─────────────────────────
+    const leadsContainer = $('leads-container');
+    const leadsEmpty = $('leads-empty');
+    const leadsSearch = $('leads-search');
+    const leadsCountEl = $('leads-count');
+    const sellingCountEl = $('selling-count');
+    const buyingCountEl = $('buying-count');
+    let activeCat = 'selling';
+
+    function getLeads() {
+      try { return JSON.parse(localStorage.getItem('leads') || '[]'); } catch { return []; }
+    }
+    function saveLeads(arr) {
+      try { localStorage.setItem('leads', JSON.stringify(arr)); } catch (e) {}
+    }
+
+    // Sub-tab switching
+    document.querySelectorAll('.leads-subtab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.leads-subtab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeCat = tab.dataset.cat;
+        renderLeads(leadsSearch.value);
+      });
+    });
+
+    function renderLeads(filter) {
+      const all = getLeads();
+      const q = (filter || '').toLowerCase().trim();
+
+      // Categorize
+      const selling = all.filter(l => l.category === 'selling');
+      const buying = all.filter(l => l.category !== 'selling');
+
+      // Update counts
+      leadsCountEl.textContent = all.length;
+      sellingCountEl.textContent = selling.length;
+      buyingCountEl.textContent = buying.length;
+
+      // Filter by active category
+      const catList = activeCat === 'selling' ? selling : buying;
+      const list = q ? catList.filter(l => {
+        const str = `${l.listingId||''} ${l.name||''} ${l.phone||''} ${l.city||''} ${l.typeLabel||''} ${l.interest||''} ${l.status||''}`.toLowerCase();
+        return str.includes(q);
+      }) : catList;
+
+      if (list.length === 0) {
+        leadsContainer.innerHTML = '';
+        leadsEmpty.style.display = 'block';
+        leadsEmpty.querySelector('.empty-text').textContent = activeCat === 'selling' ? 'No selling leads yet' : 'No buying leads yet';
+        return;
+      }
+      leadsEmpty.style.display = 'none';
+
+      if (activeCat === 'selling') {
+        // SELLING leads table — with Listing ID, Status, Link to Listing
+        leadsContainer.innerHTML = `
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Listing ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Location</th>
+                <th>Land Type</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map((l) => {
+                const origIdx = all.indexOf(l);
+                const d = l.date ? new Date(l.date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+                const lid = l.listingId || '—';
+                const lidClass = lid !== '—' ? 'lid-badge' : 'lid-none';
+                const st = l.status || 'active';
+                const stClass = st === 'closed' ? 'status-badge badge--sold' : 'status-badge badge--active';
+                const stLabel = st === 'closed' ? 'Closed' : 'Active';
+                const linked = l.linkedListing ? true : false;
+                return `<tr class="${st === 'closed' ? 'row-closed' : ''}">
+                  <td><span class="${lidClass}">${esc(lid)}</span></td>
+                  <td><strong>${esc(l.name||'—')}</strong></td>
+                  <td>${esc(l.phone||'—')}</td>
+                  <td>${esc(l.city||'—')}</td>
+                  <td>${esc(l.typeLabel||'—')}</td>
+                  <td><button class="lead-status-btn ${stClass}" data-idx="${origIdx}">${stLabel}</button></td>
+                  <td class="lead-date">${d}</td>
+                  <td class="lead-actions">
+                    ${linked
+                      ? `<span class="linked-badge" title="Linked to listing ${l.linkedListing}">🔗 Linked</span>`
+                      : `<button class="act-btn-link" data-idx="${origIdx}" title="Create Listing from Lead">📋 Link</button>`
+                    }
+                    <button class="act-btn act-btn--del lead-del" data-idx="${origIdx}" title="Delete">🗑️</button>
+                  </td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      } else {
+        // BUYING leads table
+        leadsContainer.innerHTML = `
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Location</th>
+                <th>Interest</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${list.map((l) => {
+                const origIdx = all.indexOf(l);
+                const d = l.date ? new Date(l.date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+                const st = l.status || 'active';
+                const stClass = st === 'closed' ? 'status-badge badge--sold' : 'status-badge badge--active';
+                const stLabel = st === 'closed' ? 'Closed' : 'Active';
+                return `<tr class="${st === 'closed' ? 'row-closed' : ''}">
+                  <td><strong>${esc(l.name||'—')}</strong></td>
+                  <td>${esc(l.phone||'—')}</td>
+                  <td>${esc(l.city||'—')}</td>
+                  <td><span class="lead-interest">${esc(l.interest||'—')}</span></td>
+                  <td><button class="lead-status-btn ${stClass}" data-idx="${origIdx}">${stLabel}</button></td>
+                  <td class="lead-date">${d}</td>
+                  <td><button class="act-btn act-btn--del lead-del" data-idx="${origIdx}" title="Delete">🗑️</button></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      // Wire: Status toggle
+      leadsContainer.querySelectorAll('.lead-status-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          const leads = getLeads();
+          if (leads[idx]) {
+            leads[idx].status = leads[idx].status === 'closed' ? 'active' : 'closed';
+            saveLeads(leads);
+            renderLeads(leadsSearch.value);
+          }
+        });
+      });
+
+      // Wire: Delete
+      leadsContainer.querySelectorAll('.lead-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          const leads = getLeads();
+          leads.splice(idx, 1);
+          saveLeads(leads);
+          renderLeads(leadsSearch.value);
+        });
+      });
+
+      // Wire: Link to Listing (selling leads only)
+      leadsContainer.querySelectorAll('.act-btn-link').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.idx);
+          const leads = getLeads();
+          const lead = leads[idx];
+          if (!lead) return;
+
+          // Create a new listing from this lead
+          const newListingId = genId();
+          const types = lead.typeLabel ? [lead.typeLabel] : ['Other'];
+          const newListing = {
+            id: newListingId,
+            price: '₹ Contact for price',
+            district: lead.city || '',
+            taluk: '',
+            village: '',
+            sfNumber: '',
+            landType: types,
+            landIcon: LAND_ICONS[types[0]] || '🌾',
+            area: '—',
+            feature: [],
+            featureIcon: '💧',
+            badge: 'active',
+            image: 'assets/listing-1.png',
+            dateAdded: new Date().toISOString(),
+            leadId: lead.listingId || null
+          };
+
+          const allListings = getAll();
+          allListings.push(newListing);
+          saveAll(allListings);
+
+          // Mark lead as linked
+          leads[idx].linkedListing = newListingId;
+          saveLeads(leads);
+
+          // Refresh both views
+          render(searchInput.value);
+          renderLeads(leadsSearch.value);
+
+          // Switch to listings tab and show the new listing
+          adminTabs.forEach(t => t.classList.remove('active'));
+          adminPanels.forEach(p => p.classList.remove('active'));
+          $('tab-listings').classList.add('active');
+          $('listings-tab').classList.add('active');
+
+          // Open edit modal for the new listing so admin can fill in details
+          openEdit(newListingId);
+        });
+      });
+    }
+
+    if (leadsSearch) leadsSearch.addEventListener('input', () => renderLeads(leadsSearch.value));
+
+    // ── EXPORT LEADS CSV ─────────────
+    $('export-leads-btn').addEventListener('click', () => {
+      const leads = getLeads();
+      if (leads.length === 0) return;
+      const headers = ['Listing ID','Name','Phone','Location','Land Type','Interest','Category','Status','Date'];
+      const rows = leads.map(l => [
+        l.listingId||'',l.name||'',l.phone||'',l.city||'',l.typeLabel||'',l.interest||'',l.category||'',l.status||'active',l.date||''
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'leads.csv';
+      a.click();
+    });
+
+    // ── CLEAR ALL LEADS ──────────────
+    $('clear-leads-btn').addEventListener('click', () => {
+      showConfirm('Clear All Leads?', 'This will permanently delete all leads. This cannot be undone.', () => {
+        saveLeads([]);
+        renderLeads();
+      });
+    });
+
+    // Initial leads count
+    const initLeads = getLeads();
+    leadsCountEl.textContent = initLeads.length;
+    sellingCountEl.textContent = initLeads.filter(l => l.category === 'selling').length;
+    buyingCountEl.textContent = initLeads.filter(l => l.category !== 'selling').length;
+  })();
+  </script>
+</body>
+</html>
